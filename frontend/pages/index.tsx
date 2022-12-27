@@ -18,8 +18,11 @@ import {
   Switch,
   TextField,
 } from "@mui/material";
+import { Router } from "@mui/icons-material";
+import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
+  const router = useRouter();
   const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/todos`;
   const [todos, setTodos] = useState<any[]>([]);
   const [title, setTitle] = useState<string>("");
@@ -28,6 +31,10 @@ const Home: NextPage = () => {
   const [searchValue, setSearchValue] = useState<string>("");
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token || token === "undefined") {
+      router.push("signin");
+    }
     getAll();
   }, []);
 

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class CredentialsDto {
   @IsString()
@@ -7,7 +7,6 @@ export class CredentialsDto {
 
   @IsString()
   @IsNotEmpty()
-  @MinLength(8)
-  @MaxLength(32)
+  @Length(8, 32, { message: '8文字以上で入力してください' })
   password: string;
 }

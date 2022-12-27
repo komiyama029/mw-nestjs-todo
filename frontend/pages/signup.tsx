@@ -7,6 +7,7 @@ import {
   TextField,
 } from "@mui/material";
 import { NextPage } from "next";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 import styles from "../styles/Home.module.css";
@@ -32,7 +33,7 @@ const SignUp: NextPage = () => {
           setError(data.message[0]);
           return;
         }
-        router.push("/signin");
+        router.push("/");
       });
   };
 
@@ -64,6 +65,18 @@ const SignUp: NextPage = () => {
         >
           SingUp!
         </Button>
+      </Box>
+      <Box textAlign="center" marginTop={8}>
+        Have an account?
+        <Link
+          href="/signin"
+          style={{
+            color: "#0070f3",
+            fontWeight: "bold",
+          }}
+        >
+          SingIn
+        </Link>
       </Box>
       {/* エラー表示 */}
       {error && (

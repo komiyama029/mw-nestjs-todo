@@ -7,6 +7,7 @@ import {
   TextField,
 } from "@mui/material";
 import { NextPage } from "next";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 import styles from "../styles/Home.module.css";
@@ -29,7 +30,12 @@ const SignIn: NextPage = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
-          setError(data.message[0]);
+          if (Array.isArray(data.message)) {
+            setError(data.message[0]);
+          } else {
+            setError(data.message);
+          }
+
           return;
         }
         localStorage.setItem("token", data.accessToken);
@@ -66,13 +72,24 @@ const SignIn: NextPage = () => {
           SingIn!
         </Button>
       </Box>
+      <Box textAlign="center" marginTop={8}>
+        Do not have an account?
+        <Link
+          href="/signup"
+          style={{
+            color: "#0070f3",
+            fontWeight: "bold",
+          }}
+        >
+          SingUp
+        </Link>
+      </Box>
       {/* エラー表示 */}
       {error && (
         <>
           <Snackbar
             anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             open={error !== ""}
-            autoHideDuration={6000}
             onClose={() => setError("")}
             sx={{ width: "50%" }}
           >
