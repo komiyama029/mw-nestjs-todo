@@ -11,7 +11,11 @@ export class TodosService {
   private todos: Todo[] = [];
 
   async findAll(): Promise<Todo[]> {
-    return await this.todoRepository.find();
+    return await this.todoRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
 
   async findById(id: string): Promise<Todo> {

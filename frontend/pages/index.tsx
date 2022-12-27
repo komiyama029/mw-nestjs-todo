@@ -14,7 +14,6 @@ import {
   Button,
   ButtonGroup,
   Divider,
-  Fab,
   Snackbar,
   Switch,
   TextField,
@@ -39,6 +38,7 @@ const Home: NextPage = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
       body: JSON.stringify(data),
     })
@@ -63,13 +63,23 @@ const Home: NextPage = () => {
 
   // update
   const onChangeStatus = async (id: string) => {
-    await fetch(`${apiUrl}/${id}`, { method: "PATCH" });
+    await fetch(`${apiUrl}/${id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
     getAll();
   };
 
   // delete
   const onClickDelete = (id: string) => {
-    fetch(`${apiUrl}/${id}`, { method: "DELETE" }).then(() => getAll());
+    fetch(`${apiUrl}/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }).then(() => getAll());
   };
 
   // filter
