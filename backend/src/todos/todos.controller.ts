@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -9,14 +10,18 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { Todo } from '../entities/todo.entity';
 import { TodosService } from './todos.service';
 import { TodoStatus } from './todo-status.enum';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { User } from 'src/entities/user.entity';
+import { GetUser } from 'src/auth/decorator/get-user.decorator';
 
 @Controller('todos')
+@UseInterceptors(ClassSerializerInterceptor)
 export class TodosController {
   constructor(private readonly todosService: TodosService) {}
 
@@ -42,8 +47,11 @@ export class TodosController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(@Body() createTodoDto: CreateTodoDto): Promise<Todo> {
-    return await this.todosService.create(createTodoDto);
+  async create(
+    @Body() createTodoDto: CreateTodoDto,
+    @GetUser() user: User,
+  ): Promise<Todo> {
+    return await this.todosService.create(createTodoDto, user);
   }
 
   @Patch(':id')

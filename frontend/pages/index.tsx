@@ -188,15 +188,14 @@ const Home: NextPage = () => {
             alignItems="center"
             padding={5}
           >
-            <div>
-              <TextField
-                id="outlined-basic"
-                label="Enter your todo"
-                variant="outlined"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
+            <TextField
+              fullWidth
+              id="outlined-basic"
+              label="Enter your todo"
+              variant="outlined"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
             <div className={styles.button}>
               <Button variant="contained" onClick={onClickCreate}>
                 create!

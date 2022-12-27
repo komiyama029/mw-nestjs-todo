@@ -4,6 +4,7 @@ import { TodoStatus } from './todo-status.enum';
 import { Todo } from '../entities/todo.entity';
 import { TodoRepository } from './todo.Repository';
 import { Like } from 'typeorm';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class TodosService {
@@ -39,8 +40,8 @@ export class TodosService {
     return found;
   }
 
-  async create(createTodoDto: CreateTodoDto): Promise<Todo> {
-    return await this.todoRepository.createTodo(createTodoDto);
+  async create(createTodoDto: CreateTodoDto, user: User): Promise<Todo> {
+    return await this.todoRepository.createTodo(createTodoDto, user);
   }
 
   async updateStatus(id: string): Promise<Todo> {
