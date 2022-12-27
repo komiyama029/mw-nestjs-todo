@@ -7,10 +7,12 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { Todo } from '../entities/todo.entity';
 import { TodosService } from './todos.service';
+import { TodoStatus } from './todo-status.enum';
 
 @Controller('todos')
 export class TodosController {
@@ -21,9 +23,19 @@ export class TodosController {
     return await this.todosService.findAll();
   }
 
-  @Get(':id')
+  @Get('detail/:id')
   async findById(@Param('id', ParseUUIDPipe) id: string): Promise<Todo> {
     return await this.todosService.findById(id);
+  }
+
+  @Get('filter')
+  async filterByStatus(@Query('status') status: TodoStatus): Promise<Todo[]> {
+    return await this.todosService.filterByStatus(status);
+  }
+
+  @Get('search')
+  async search(@Query('title') title: string): Promise<Todo[]> {
+    return await this.todosService.search(title);
   }
 
   @Post()

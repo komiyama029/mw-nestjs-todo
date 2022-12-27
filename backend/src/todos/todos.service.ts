@@ -3,6 +3,7 @@ import { CreateTodoDto } from './dto/create-todo.dto';
 import { TodoStatus } from './todo-status.enum';
 import { Todo } from '../entities/todo.entity';
 import { TodoRepository } from './todo.Repository';
+import { Like } from 'typeorm';
 
 @Injectable()
 export class TodosService {
@@ -21,13 +22,30 @@ export class TodosService {
     return found;
   }
 
+  async filterByStatus(status: TodoStatus): Promise<Todo[]> {
+    return await this.todoRepository.find({
+      status,
+    });
+  }
+
+  async search(title: string): Promise<Todo[]> {
+    const found = await this.todoRepository.find({
+      title: Like(`%${title}%`),
+    });
+    return found;
+  }
+
   async create(createTodoDto: CreateTodoDto): Promise<Todo> {
     return await this.todoRepository.createTodo(createTodoDto);
   }
 
   async updateStatus(id: string): Promise<Todo> {
     const todo = await this.todoRepository.findOne(id);
-    todo.status = TodoStatus.IS_DONE;
+    if (todo.status === 'IS_DONE') {
+      todo.status = TodoStatus.NOT_YET;
+    } else {
+      todo.status = TodoStatus.IS_DONE;
+    }
     todo.updatedAt = new Date().toISOString();
     await this.todoRepository.save(todo);
     return todo;

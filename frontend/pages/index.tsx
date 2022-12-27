@@ -1,6 +1,5 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import styles from "../styles/Home.module.css";
 import List from "@mui/material/List";
@@ -8,25 +7,35 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Button, Switch, TextField } from "@mui/material";
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  ButtonGroup,
+  Divider,
+  Fab,
+  Snackbar,
+  Switch,
+  TextField,
+} from "@mui/material";
 
 const Home: NextPage = () => {
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/todos`;
   const [todos, setTodos] = useState<any[]>([]);
   const [title, setTitle] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [active, setActive] = useState<number>(0);
+  const [searchValue, setSearchValue] = useState<string>("");
 
   useEffect(() => {
-    fetch("http://localhost:3000/todos")
-      .then((res) => res.json())
-      .then((data) => setTodos(data));
-  }, [todos]);
+    getAll();
+  }, []);
 
-  const onClickDelete = (id: string) => {
-    fetch(`http://localhost:3000/todos/${id}`, { method: "DELETE" });
-  };
-
+  // create
   const onClickCreate = () => {
     const data = { title };
-    fetch("http://localhost:3000/todos", {
+    fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
@@ -34,7 +43,47 @@ const Home: NextPage = () => {
       body: JSON.stringify(data),
     })
       .then((res) => res.json())
-      .then((data) => console.log(data));
+      .then((data) => {
+        if (data.error) {
+          setError(data.message[0]);
+          return;
+        }
+        const newTodos = [...todos, data];
+        setTodos(newTodos);
+        setTitle("");
+      });
+  };
+
+  // read
+  const getAll = async () => {
+    await fetch(apiUrl)
+      .then((res) => res.json())
+      .then((data) => setTodos(data));
+  };
+
+  // update
+  const onChangeStatus = async (id: string) => {
+    await fetch(`${apiUrl}/${id}`, { method: "PATCH" });
+    getAll();
+  };
+
+  // delete
+  const onClickDelete = (id: string) => {
+    fetch(`${apiUrl}/${id}`, { method: "DELETE" }).then(() => getAll());
+  };
+
+  // filter
+  const filterByStatus = async (status: "IS_DONE" | "NOT_YET") => {
+    await fetch(`${apiUrl}/filter?status=${status}`)
+      .then((res) => res.json())
+      .then((data) => setTodos(data));
+  };
+
+  //search
+  const onClickSearch = async () => {
+    await fetch(`${apiUrl}/search?title=${searchValue}`)
+      .then((res) => res.json())
+      .then((data) => setTodos(data));
   };
 
   return (
@@ -45,62 +94,143 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        {todos.length > 0 && (
-          <List>
-            {todos.map((todo) => (
-              <ListItem
-                key={todo.id}
-                secondaryAction={
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => onClickDelete(todo.id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                }
+      <Box display="grid" gridTemplateRows="1fr auto" minHeight="100vh">
+        <Box padding={5}>
+          <h1 className={styles.title}>
+            Welcome to <a href="./">Next.js!</a>
+          </h1>
+          {/* ボタン */}
+          <Box sx={{ display: "flex", justifyContent: "center" }} marginTop={3}>
+            <ButtonGroup variant="outlined" aria-label="outlined button group">
+              <Button
+                variant={active === 0 ? "contained" : "outlined"}
+                onClick={() => {
+                  getAll(), setActive(0);
+                }}
               >
-                <Switch />
-                <ListItemText primary={todo.title} />
-              </ListItem>
-            ))}
-          </List>
-        )}
-
-        <div>
-          <div>
-            <TextField
-              id="outlined-basic"
-              label="Outlined"
-              variant="outlined"
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-          <div className={styles.button}>
-            <Button variant="contained" onClick={onClickCreate}>
-              Contained
-            </Button>
-          </div>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{" "}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+                All
+              </Button>
+              <Button
+                variant={active === 1 ? "contained" : "outlined"}
+                onClick={() => {
+                  filterByStatus("IS_DONE");
+                  setActive(1);
+                }}
+              >
+                Is Done
+              </Button>
+              <Button
+                variant={active === 2 ? "contained" : "outlined"}
+                onClick={() => {
+                  filterByStatus("NOT_YET");
+                  setActive(2);
+                }}
+              >
+                Not Yet
+              </Button>
+            </ButtonGroup>
+          </Box>
+          {/* リスト */}
+          {todos.length > 0 ? (
+            <Box maxWidth="640px" margin="auto">
+              <List>
+                {todos.map((todo) => (
+                  <ListItem
+                    key={todo.id}
+                    secondaryAction={
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={() => onClickDelete(todo.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    }
+                  >
+                    <Switch
+                      checked={todo.status === "IS_DONE"}
+                      onChange={() => onChangeStatus(todo.id)}
+                    />
+                    <ListItemText primary={todo.title} />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          ) : (
+            <Box textAlign="center" marginTop={3}>
+              No Todos!
+            </Box>
+          )}
+        </Box>
+        {/* 作成 */}
+        <Box>
+          <Divider />
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            padding={5}
+          >
+            <div>
+              <TextField
+                id="outlined-basic"
+                label="Enter your todo"
+                variant="outlined"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            <div className={styles.button}>
+              <Button variant="contained" onClick={onClickCreate}>
+                create!
+              </Button>
+            </div>
+          </Box>
+        </Box>
+      </Box>
+      {/* 検索 */}
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={true}
+        autoHideDuration={6000}
+        message="Note archived"
+      >
+        <Box display="flex" alignItems="center">
+          <TextField
+            value={searchValue}
+            variant="standard"
+            onChange={(e) => setSearchValue(e.target.value)}
+          />
+          <Button
+            variant="outlined"
+            sx={{ marginLeft: "15px" }}
+            onClick={onClickSearch}
+          >
+            Search
+          </Button>
+        </Box>
+      </Snackbar>
+      {/* エラー表示 */}
+      {error && (
+        <>
+          <Snackbar
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            open={error !== ""}
+            autoHideDuration={6000}
+            onClose={() => setError("")}
+            sx={{ width: "50%" }}
+          >
+            <Alert
+              onClose={() => setError("")}
+              severity="error"
+              sx={{ width: "100%" }}
+            >
+              <AlertTitle>Error</AlertTitle>
+              {error}
+            </Alert>
+          </Snackbar>
+        </>
+      )}
     </div>
   );
 };
